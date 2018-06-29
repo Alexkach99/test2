@@ -181,7 +181,7 @@ function getPointIds() {
 }
 
 function onResize() {
-	if (!map) {
+	if (!map || !pointEditor) {
 		return;
 	}
 	
