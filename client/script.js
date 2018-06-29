@@ -204,9 +204,8 @@ function onResize() {
 	container.style.width = width;
 	container.style.height = height;
 	
-	map.container.fitToViewport();
 	polyline.geometry.setCoordinates(coords);
-    polyline.editor.startEditing();
+	map.container.fitToViewport();
 }
 
 function wait(time) {
