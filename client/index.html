@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+	<script src="http://james2doyle.github.io/zepto-dragswap/zepto.min.js" type="text/javascript"></script>
+	<script src="http://james2doyle.github.io/zepto-dragswap/zepto.dragswap.js" type="text/javascript"></script>
+    <script src="script.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body class="horizontal" onload="onLoad()" onresize="onResize()">
+<div id="map"></div>
+<div class="pointEditor pointEditor-right">
+	<div id="newPointDiv">
+		<form onsubmit="addPoint(); return false;">
+			<input id="newPoint">
+			<button>Add</button>
+		</form>
+	</div>
+	<ul class="sortable" id="pointList" style="list-style-type:none"></ul>
+</div>
+<script>
+$(function() {
+	$('.sortable').dragswap({
+		element : 'li',
+		dropAnimation: true,
+		dropComplete
+	});
+});
+</script>
+</body>
+</html>

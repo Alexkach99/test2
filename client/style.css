@@ -1,0 +1,44 @@
+html, body, #map {
+	width: 100%; height: 100%; padding: 0; margin: 0;
+}
+body {
+	display: flex;
+	overflow: hidden;
+}
+.horizontal {
+	flex-direction: row;
+}
+.vertical {
+	flex-direction: column;
+}
+.pointEditor {
+	text-align: center;
+	margin-top: 25px;
+}
+.pointEditor-right {
+	width: 33.334%;
+	height: 100%;
+}
+.pointEditor-bottom {
+	width: 100%;
+	height: 33.334%;
+}
+#pointList {
+	height: calc(100% - 46px);
+	overflow-y: auto;
+}
+.del-btn {
+	width: 20px;
+	height: 20px;
+	margin: 5px;
+	padding: 0px;
+}
+.draggable {
+	cursor: move;
+}
+ul {
+	padding-left: 0px;
+}
+li:hover {
+	background-color: #FFFF00;
+}
