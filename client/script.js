@@ -7,6 +7,10 @@ var map;
 var pointInput;
 var pointList;
 var pointIds;
+var ready = 0;
+
+waitUntil(() => ready === 2)
+.then(initUI);
 
 ymaps.ready(init);
 
@@ -15,6 +19,8 @@ function onLoad() {
 	pointEditor = document.getElementsByClassName('pointEditor')[0];
 	pointInput = document.getElementById('newPoint');
 	pointList = document.getElementById('pointList');
+	
+	ready++;
 }
 
 async function init() {
@@ -29,7 +35,6 @@ async function init() {
 	.then(() => {
 		deleteNode(controlPanel);
 	});
-	onResize();
 	
     // Создаем ломаную.
     polyline = new ymaps.Polyline([], {
@@ -59,16 +64,43 @@ async function init() {
 			coords = newCoords;
 		}
 		polyline.balloon.close();
+		savePoints();
 	})
-	polyline.events.add('contextmenu', e => {
-		console.log(e);
-	});
 
     // Добавляем линию на карту.
     map.geoObjects.add(polyline);
 
     // Включаем режим редактирования.
     polyline.editor.startEditing();
+	
+	ready++;
+}
+
+function initUI() {
+	const docWidth = $(document).width();
+	const docHeight = $(document).height();
+	if (docWidth > docHeight) {
+		var width = (docWidth * 0.666 | 0) + 'px';
+		var height = docHeight + 'px';
+		document.body.classList.remove('vertical');
+		document.body.classList.add('horizontal');
+		pointEditor.classList.remove('pointEditor-bottom');
+		pointEditor.classList.add('pointEditor-right');
+	} else {
+		var width = docWidth + 'px';
+		var height = (docHeight * 0.666 | 0) + 'px';
+		document.body.classList.remove('horizontal');
+		document.body.classList.add('vertical');
+		pointEditor.classList.remove('pointEditor-right');
+		pointEditor.classList.add('pointEditor-bottom');
+	}
+	
+	container.style.width = width;
+	container.style.height = height;
+	
+	skipError(() => map.container.fitToViewport());
+	
+	loadPoints();
 }
 
 function getLocation() {
@@ -90,7 +122,7 @@ function getLocation() {
 }
 
 function addPoint() {
-	if (pointInput.value.length === 0) {
+	if (!pointInput || pointInput.value.length === 0) {
 		return;
 	}
 	
@@ -111,6 +143,8 @@ function addPoint() {
 	polyline.options.set('editorMaxPoints', coords.length);
 	polyline.geometry.setCoordinates(coords);
 	updatePointIds();
+	
+	savePoints();
 }
 
 function getPointName(coord) {
@@ -130,6 +164,8 @@ function deletePoint(point) {
 	deleteNode(point);
 	polyline.options.set('editorMaxPoints', coords.length);
 	updatePointIds();
+	
+	savePoints();
 }
 
 function deleteCoord(newCoords) {
@@ -167,9 +203,35 @@ function dropComplete() {
 	polyline.geometry.setCoordinates(coords);
 	polyline.options.set('editorMaxPoints', coords.length);
 	
+	addBtnListeners();
+	
+	savePoints();
+}
+
+function addBtnListeners() {
 	for (const point of pointList.children) {
 		point.lastChild.onclick = () => deletePoint(point);
 	}
+}
+
+function savePoints() {
+	localStorage.setItem('coords', JSON.stringify(coords));
+	localStorage.setItem('pointIds', JSON.stringify(pointIds));
+	localStorage.setItem('pointList', pointList.innerHTML);
+}
+
+function loadPoints() {
+	if (!(localStorage.getItem('coords') && localStorage.getItem('pointIds') && localStorage.getItem('pointList'))) {
+		return;
+	}
+	
+	coords = JSON.parse( localStorage.getItem('coords') );
+	pointIds = JSON.parse( localStorage.getItem('pointIds') );
+	pointList.innerHTML = localStorage.getItem('pointList');
+	
+	addBtnListeners();
+	
+	polyline.geometry.setCoordinates(coords);
 }
 
 function updatePointIds() {
@@ -180,32 +242,18 @@ function getPointIds() {
 	return new Array(...pointList.children).map(point => point.id);
 }
 
-function onResize() {
-	if (!map || !pointEditor) {
-		return;
+//Из-за бага в API Яндекс карт приходиться
+//перезагружать страницу при изменении размеров окна
+function onResize(repeat) {
+	location.reload();
+}
+
+function skipError(func) {console.log(0);
+	try {
+		func();
+	} catch(e) {
+		skipError(func);
 	}
-	
-	if (innerWidth > innerHeight) {
-		var width = (innerWidth * 0.666 | 0) + 'px';
-		var height = innerHeight + 'px';
-		document.body.classList.remove('vertical');
-		document.body.classList.add('horizontal');
-		pointEditor.classList.remove('pointEditor-bottom');
-		pointEditor.classList.add('pointEditor-right');
-	} else {
-		var width = innerWidth + 'px';
-		var height = (innerHeight * 0.666 | 0) + 'px';
-		document.body.classList.remove('horizontal');
-		document.body.classList.add('vertical');
-		pointEditor.classList.remove('pointEditor-right');
-		pointEditor.classList.add('pointEditor-bottom');
-	}
-	
-	container.style.width = width;
-	container.style.height = height;
-	
-	polyline.geometry.setCoordinates(coords);
-	map.container.fitToViewport();
 }
 
 function wait(time) {
